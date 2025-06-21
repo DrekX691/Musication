@@ -1,81 +1,68 @@
+// src/App.jsx
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useSearchParams,
+  useNavigate,
+} from "react-router-dom";
+import Player from "./Player";
+import QrScanner from "C:\Users\DrekX\Desktop\Játék\frontend\src\QrScanner"; // ✅ 1. QR-komponens importálása
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// frontend/src/App.js
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-
-export default function App() {
+function CallbackHandler() {
   const [searchParams] = useSearchParams();
-  const [track, setTrack] = useState(null);
-  const [audio, setAudio] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const id = searchParams.get("id");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchTrack() {
-      try {
-        const res = await fetch(`https://your-backend-url.onrender.com/track/${id}`);
-        const data = await res.json();
-        setTrack(data);
-        setAudio(new Audio(data.url));
-        setLoading(false);
-      } catch (err) {
-        console.error("Hiba a dal betöltésekor", err);
-      }
+    const code = searchParams.get("code");
+    if (code) {
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/callback?code=${code}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.access_token) {
+            localStorage.setItem("access_token", data.access_token);
+            navigate("/player");
+          }
+        });
     }
-    if (id) fetchTrack();
-  }, [id]);
+  }, []);
 
-  if (loading) return <div className="text-center">Betöltés...</div>;
+  return <div className="text-white">Bejelentkezés...</div>;
+}
 
+function Login() {
+  const loginUrl = `${import.meta.env.VITE_BACKEND_URL}/login`;
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center gap-4">
-      <div className="text-xl">🎵 {track.name}</div>
-      <div className="text-gray-500">👤 {track.artist}</div>
-      <div className="flex gap-4 mt-4">
-        <button onClick={() => audio.play()} className="bg-green-600 text-white px-4 py-2 rounded">Lejátszás</button>
-        <button onClick={() => audio.pause()} className="bg-red-600 text-white px-4 py-2 rounded">Megállítás</button>
-        <button onClick={() => window.location.href = "/"} className="bg-gray-600 text-white px-4 py-2 rounded">Új QR</button>
-      </div>
+    <div className="flex flex-col h-screen justify-center items-center bg-black text-white">
+      <h1 className="text-3xl font-bold mb-6">Musication</h1>
+      <a
+        href={loginUrl}
+        className="bg-green-500 px-6 py-3 rounded text-white font-bold hover:bg-green-600"
+      >
+        Bejelentkezés Spotify fiókkal
+      </a>
+      <a
+        href="/scan"
+        className="mt-4 underline text-sm text-gray-300 hover:text-white"
+      >
+        vagy olvass be QR-kódot
+      </a>
     </div>
   );
 }
-// Példa frontend React komponens
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/callback" element={<CallbackHandler />} />
+        <Route path="/player" element={<Player />} />
+        <Route path="/scan" element={<QrScanner />} /> {/* ✅ 2. Új útvonal */}
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
