@@ -8,7 +8,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Player from "./Player";
-import QrScanner from "C:\Users\DrekX\Desktop\Játék\frontend\src\QrScanner"; // ✅ 1. QR-komponens importálása
+import QrScanner from "./QrScanner"; // ✅ 1. QR-komponens importálása
 
 function CallbackHandler() {
   const [searchParams] = useSearchParams();
